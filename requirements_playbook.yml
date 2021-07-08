@@ -39,4 +39,53 @@
 #      register: tag_details
 #    - debug:
 #        msg: "{{ tag_details.tag_facts }}"
+
+
+    - name: Create a virtual machine from a template
+      vmware_guest:
+        hostname: vcsa.formation.lan
+        username: loubna
+        password: F0rmation!
+        validate_certs: no
+        name: Deb-loubna
+        folder: /
+        template: DebTemplate
+        datacenter: Datacenter
+      delegate_to: localhost
+
+    - name: Add tags to a virtual machine
+      vmware_tag_manager:
+        hostname: vcsa.formation.lan
+        username: loubna
+        password: F0rmation!
+        validate_certs: no
+        tag_names:
+          - loubna
+        object_name: Deb-loubna
+        object_type: VirtualMachine
+        state: add
+      delegate_to: localhost
+
+    - name: Get timestamp from the system
+      shell: "date +%d-%m-%Y%H-%M-%S"
+      register: tstamp
+
+    - name: Set variables
+      set_fact:
+        cur_date: "{{tstamp.stdout[0:10]}}"
+
+    - name: Add vm custom attributes
+      vmware_guest_custom_attributes:
+        hostname: vcsa.formation.lan
+        username: loubna
+        password: F0rmation!
+        name: Deb-loubna
+        state: present
+        validate_certs: no
+        attributes:
+          - name: DateCreation
+            value: "{{cur_date}}"
+      delegate_to: localhost
+      register: attributes
+        
 ...
