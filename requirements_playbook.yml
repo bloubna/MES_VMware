@@ -122,14 +122,35 @@
       delegate_to: localhost
 
     - name: Set the state of a virtual machine to poweron
-      vmware_guest_powerstate:
+      vmware_guest:
         hostname: vcsa.formation.lan
         username: loubna
         password: F0rmation!
         name: Deb-loubna
         validate_certs: no
         folder: /
-        state: powered-on
+        state: poweredon
+        wait_for_ip_address: yes
       delegate_to: localhost
       register: deploy
+
+    - name: Get Tags from given VM Name
+      block:
+        - name: Get virtual machine info
+          vmware_vm_info:
+            hostname: vcsa.formation.lan
+            username: loubna
+            password: F0rmation!
+            folder: /
+            validate_certs: no
+          delegate_to: localhost
+          register: vm_info
+          until: vm_info.instance.ipv4 is not none
+
+        - debug:
+            msg: "{{ item.tags }}"
+          with_items:
+            - "{{ vm_info.virtual_machines | json_query(query) }}"
+          vars:
+            query: "[?guest_name=='Deb-loubna']"
 ...
