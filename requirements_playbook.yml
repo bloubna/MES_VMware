@@ -5,7 +5,7 @@
   tasks:
 
     - name: Add Management Network VM Portgroup to specific hosts
-      community.vmware.vmware_portgroup:
+      vmware_portgroup:
         hostname: vcsa.formation.lan
         username: loubna
         password: F0rmation!
@@ -17,6 +17,26 @@
         state: present 
       delegate_to: localhost
 
+    - name: Create a tag loubna
+      vmware_tag:
+        hostname: vcsa.formation.lan
+        username: loubna
+        password: F0rmation!
+        validate_certs: no
+        category_id: 'urn:vmomi:InventoryServiceCategory:ae1957ef-839b-468c-ac6a-df722535aeb1:GLOBAL'
+        tag_name: loubna
+        tag_description: Tag loubna dans la catégorie Proprio
+        state: present
+      delegate_to: localhost
 
 
-ssh-copy-id -i /home/loubna/.ssh/id_ed25519 loubna@78.192.40.154
+#    - name: Get category id from the given tag
+#      vmware_tag_info:
+#        hostname: vcsa.formation.lan
+#        username: loubna
+#        password: F0rmation!
+#        validate_certs: no
+#      register: tag_details
+#    - debug:
+#        msg: "{{ tag_details.tag_facts }}"
+...
