@@ -1,0 +1,5 @@
+[local]
+manager ansible_connection=local
+
+[hyperviseur]
+vcenter ansible_hostname=vcsa.formation.lan

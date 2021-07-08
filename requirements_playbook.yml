@@ -1,0 +1,22 @@
+---
+- name: PLAY gestion infra
+  hosts: local
+
+  tasks:
+
+    - name: Add Management Network VM Portgroup to specific hosts
+      community.vmware.vmware_portgroup:
+        hostname: vcsa.formation.lan
+        username: loubna
+        password: F0rmation!
+        cluster_name: Cluster
+        switch: vSwitch0
+        portgroup: VLAN-Loubna
+        vlan_id: 1000
+        validate_certs: no
+        state: present 
+      delegate_to: localhost
+
+
+
+ssh-copy-id -i /home/loubna/.ssh/id_ed25519 loubna@78.192.40.154
