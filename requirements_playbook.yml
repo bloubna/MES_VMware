@@ -4,7 +4,7 @@
 
   tasks:
 
-    - name: Add Management Network VM Portgroup to specific hosts
+    - name: Add Management Network VM Portgroup to Cluster
       vmware_portgroup:
         hostname: vcsa.formation.lan
         username: loubna
@@ -40,7 +40,7 @@
 #    - debug:
 #        msg: "{{ tag_details.tag_facts }}"
 
-
+#Création de la vm loubna
     - name: Create a virtual machine from a template
       vmware_guest:
         hostname: vcsa.formation.lan
@@ -53,6 +53,7 @@
         datacenter: Datacenter
       delegate_to: localhost
 
+# Ajout de tag sur la machine loubna
     - name: Add tags to a virtual machine
       vmware_tag_manager:
         hostname: vcsa.formation.lan
@@ -66,6 +67,7 @@
         state: add
       delegate_to: localhost
 
+## Modif de la date de création
     - name: Get timestamp from the system
       shell: "date +%d-%m-%Y%H-%M-%S"
       register: tstamp
@@ -87,5 +89,47 @@
             value: "{{cur_date}}"
       delegate_to: localhost
       register: attributes
-        
+
+# ajout d'une nic pout port group vlan-loubna
+    - name: add a nic on network with vlan id 1000
+      vmware_guest_network:
+        hostname: vcsa.formation.lan
+        username: loubna
+        password: F0rmation!
+        datacenter: Datacenter
+        validate_certs: no
+        name: Deb-loubna
+        networks:
+          - name : VLAN-Loubna
+            device_type : vmxnet3
+            state: new
+      delegate_to: localhost
+#
+
+    - name: Redimensionner le disque à 5G
+      vmware_guest_disk:
+        hostname: vcsa.formation.lan
+        username: loubna
+        password: F0rmation!
+        datacenter: Datacenter
+        validate_certs: no
+        name: Deb-loubna
+        disk:
+          - size_gb: 5
+            autoselect_datastore: True
+            unit_number: 0
+            scsi_controller: 0
+      delegate_to: localhost
+
+    - name: Set the state of a virtual machine to poweron
+      vmware_guest_powerstate:
+        hostname: vcsa.formation.lan
+        username: loubna
+        password: F0rmation!
+        name: Deb-loubna
+        validate_certs: no
+        folder: /
+        state: powered-on
+      delegate_to: localhost
+      register: deploy
 ...
