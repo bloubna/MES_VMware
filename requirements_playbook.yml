@@ -1,10 +1,10 @@
 ---
-- name: PLAY gestion infra
+- name: Configuration hyperviseur
   hosts: local
 
   tasks:
 
-    - name: Add Management Network VM Portgroup to Cluster
+    - name: Add  VM Portgroup to Cluster
       vmware_portgroup:
         hostname: vcsa.formation.lan
         username: loubna
@@ -90,6 +90,29 @@
       delegate_to: localhost
       register: attributes
 
+#Mise à jour de la Compatibilité materiel 
+    - name: Mise à jour de la Compatibilité materiel à la version 14
+      vmware_guest:
+        hostname: vcsa.formation.lan
+        username: loubna
+        password: F0rmation!
+        name: Deb-loubna
+        validate_certs: no
+        hardware:
+          version: 14
+      delegate_to: localhost
+
+# Mise à jour de l'OS à 10
+    - name: Mise à jour de l'OS à 10
+      vmware_guest:
+        hostname: vcsa.formation.lan
+        username: loubna
+        password: F0rmation!
+        name: Deb-loubna
+        validate_certs: no
+        guest_id: debian10_64Guest
+      delegate_to: localhost
+
 # ajout d'une nic pout port group vlan-loubna
     - name: add a nic on network with vlan id 1000
       vmware_guest_network:
@@ -104,7 +127,8 @@
             device_type : vmxnet3
             state: new
       delegate_to: localhost
-#
+
+#Redimensionner le disque à 5G
 
     - name: Redimensionner le disque à 5G
       vmware_guest_disk:
@@ -128,29 +152,35 @@
         password: F0rmation!
         name: Deb-loubna
         validate_certs: no
-        folder: /
+        datacenter: Datacenter
         state: poweredon
-        wait_for_ip_address: yes
+        wait_for_ip_address : yes
       delegate_to: localhost
-      register: deploy
+      #register: vm_result
 
-    - name: Get Tags from given VM Name
-      block:
-        - name: Get virtual machine info
-          vmware_vm_info:
-            hostname: vcsa.formation.lan
-            username: loubna
-            password: F0rmation!
-            folder: /
-            validate_certs: no
-          delegate_to: localhost
-          register: vm_info
-          until: vm_info.instance.ipv4 is not none
+    - name: Récupération de l'ip à partie des facts vm
+      vmware_guest_info:
+        hostname: vcsa.formation.lan
+        username: loubna
+        password: F0rmation!
+        name: Deb-loubna
+        datacenter: Datacenter
+        validate_certs: no
+      register: vm_facts
+      delegate_to: localhost
 
-        - debug:
-            msg: "{{ item.tags }}"
-          with_items:
-            - "{{ vm_info.virtual_machines | json_query(query) }}"
-          vars:
-            query: "[?guest_name=='Deb-loubna']"
+    - name: fait pour ip
+      set_fact:
+        vm_ip: "{{ vm_facts.instance.ipv4 }}" 
+
+    - name: debug
+      debug:
+        msg: "{{ vm_facts['instance']['ipv4'] }}"
+      register: ipv4
+
+    - name: Ajout de la vm debian à l'inventaire
+      add_host:
+        name: Deb-loubna
+        ansible_host: "{{ vm_ip }}"
 ...
+
