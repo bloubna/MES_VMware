@@ -173,14 +173,30 @@
       set_fact:
         vm_ip: "{{ vm_facts.instance.ipv4 }}" 
 
-    - name: debug
-      debug:
-        msg: "{{ vm_facts['instance']['ipv4'] }}"
-      register: ipv4
+ #   - name: debug
+ #     debug:
+ #       msg: "{{ vm_facts['instance']['ipv4'] }}"
+  #    register: ipv4
 
     - name: Ajout de la vm debian à l'inventaire
-      add_host:
-        name: Deb-loubna
+      ansible.builtin.add_host:
+        name: Debian
         ansible_host: "{{ vm_ip }}"
+        ansible_user: dawan
+        ansible_password: dawan
+
+    - name: debug
+      debug:
+        var: vm_ip 
+
+- name: Configuration vm debian
+  hosts: Debian
+
+  tasks:
+
+    - name: deployer la clé publique pour user dawan
+      ansible.posix.authorized_key:
+        user: dawan
+        key: "{{ lookup('file', '/home/loubna/.ssh/id_rsa.pub') }}"
 ...
 
